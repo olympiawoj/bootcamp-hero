@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const BootcampSchema = new monogoose.Schema({
+const BootcampSchema = new mongoose.Schema({
     //fields 
     name: {
         type: String,
