@@ -2,6 +2,7 @@
 const express = require('express')
 const morgan = require('morgan')
 const colors = require('colors')
+const errorHandler = require('./middleware/error')
 
 //Route files
 const bootcamps = require('./routes/bootcamps')
@@ -26,7 +27,8 @@ if (process.env.NODE_ENV === "development") {
 
 //Mount routers
 app.use('/api/v1/bootcamps', bootcamps)
-
+//errorHandler must be after bootcamps to be used in controllers/bootcamps.js 
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 5000
 
