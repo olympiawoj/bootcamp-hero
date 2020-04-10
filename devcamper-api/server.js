@@ -1,17 +1,20 @@
 
+//Load env vars
+const dotenv = require('dotenv');
+
 const express = require('express')
 const morgan = require('morgan')
 const colors = require('colors')
 const errorHandler = require('./middleware/error')
 
+// Load env vars
+dotenv.config({ path: './config/config.env' });
+
 //Route files
 const bootcamps = require('./routes/bootcamps')
-const dotenv = require('dotenv')
-
 const connectDB = require('./config/db')
 
-//Load env vars
-dotenv.config({ path: './config/config.env' })
+
 //Connect to database
 connectDB()
 
