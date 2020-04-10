@@ -29,7 +29,6 @@ const bootcamps = JSON.parse(fs.readFileSync(`${__dirname}/_data/bootcamps.json`
 //Import data into  our DB with function
 const importData = async () => {
     try {
-        console.log('is this even running?')
         //similar to Bootcamp controller method - we're not saving it bc we don't need to respond with anything. Goal is just to import it into the DB. 
         await Bootcamp.create(bootcamps)
 
