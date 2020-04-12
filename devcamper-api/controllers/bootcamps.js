@@ -7,7 +7,15 @@ const Bootcamp = require('../models/Bootcamp')
 //@route GET /api/v1/bootcamps
 //@access Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-    const bootcamps = await Bootcamp.find()
+    let query;
+
+    let queryStr = JSON.stringify(req.query) //query param as json string
+
+    queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`)//1st param-replace takes in regex, g=global means doesnt stop at the first it finds, 2nd param- takes in a function, match => what to return?
+
+    query = Bootcamp.find(JSON.parse(queryStr))
+
+    const bootcamps = await query
     res.status(200).json({ success: true, count: bootcamps.length, data: bootcamps })
 
 })
