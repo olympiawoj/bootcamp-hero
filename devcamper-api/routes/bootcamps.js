@@ -7,7 +7,17 @@ const {
     deleteBootcamp,
     getBootcampsInRadius
 } = require('../controllers/bootcamps')
+
+// Include other resource routers 
+const courseRouter = require('./courses')
+
 const router = express.Router()
+
+// Re-route into other resource routers
+// Anything that has :/bootcampId/courses, we know if that param is included, we want to mount that into the course router
+//Rather than bringing in getCourses into this router 
+router.use('/:bootcampId/courses', courseRouter);
+
 
 router
     .route('/radius/:zipcode/:distance')
