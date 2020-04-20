@@ -79,3 +79,53 @@ exports.addCourse = asyncHandler(async (req, res) => {
         data: course
     })
 })
+
+
+//@desc Update course
+//@route PUT /api/v1/courses/:id
+//@access Private - 
+
+exports.updateCourse = asyncHandler(async (req, res) => {
+
+    let course = await Course.findById(req.params.id)
+
+    //check to see if the course exists
+    if (!course) {
+        return next(new ErrorResponse(`No bootamp with the id of ${req.params.id}`), 404)
+    }
+
+    //Update course= findByIdAndUpdate takes id and what we want to update with and options {}
+    course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    })
+
+    res.status(200).json({
+        success: true,
+        data: course //sends back updated course
+    })
+})
+
+
+//@desc Delete course
+//@route DELETE /api/v1/courses/:id
+//@access Private - 
+
+exports.deleteCourse = asyncHandler(async (req, res) => {
+
+    const course = await Course.findById(req.params.id)
+
+    //check to see if the course exists
+    if (!course) {
+        return next(new ErrorResponse(`No bootamp with the id of ${req.params.id}`), 404)
+    }
+
+    //Remove 
+    await course.remove()
+
+
+    res.status(200).json({
+        success: true,
+        data: {} //return empty object for delete
+    })
+})
