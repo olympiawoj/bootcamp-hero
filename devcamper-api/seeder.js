@@ -33,7 +33,7 @@ const importData = async () => {
     try {
         //similar to Bootcamp controller method - we're not saving it bc we don't need to respond with anything. Goal is just to import it into the DB. 
         await Bootcamp.create(bootcamps)
-        // await Course.create(courses)
+        await Course.create(courses)
 
         console.log('Data Imported...'.green.inverse)
         //exit from process

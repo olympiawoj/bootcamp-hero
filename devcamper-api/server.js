@@ -1,14 +1,17 @@
 
 //Load env vars
 const dotenv = require('dotenv');
-
+const path = require('path')
 const express = require('express')
 const morgan = require('morgan')
 const colors = require('colors')
+const fileupload = require('express-fileupload')
 const errorHandler = require('./middleware/error')
 
 // Load env vars
 dotenv.config({ path: './config/config.env' });
+
+
 
 //Route files
 const bootcamps = require('./routes/bootcamps')
@@ -23,6 +26,13 @@ const app = express()
 
 // Body parser
 app.use(express.json())
+
+//File uploading
+app.use(fileupload())
+
+// Set public as our static folder 
+app.use(express.static(path.join(__dirname, 'public')))
+console.log(__dirname + 'public')
 
 //Dev logging middleware
 if (process.env.NODE_ENV === "development") {

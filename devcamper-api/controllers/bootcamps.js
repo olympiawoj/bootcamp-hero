@@ -1,3 +1,4 @@
+const path = require('path')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
 const geocoder = require('../utils/geocoder')
@@ -143,6 +144,63 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
     bootcamp.remove();//calls middleware 
 
     res.status(200).json({ success: true, data: {} })
+
+})
+
+
+
+//@desc Upload photo for bootcamp
+//@route PUT /api/v1/bootcamps/:id/photo
+//@access Private
+exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
+    const bootcamp = await Bootcamp.findById(req.params.id)
+    //check to make sure there is a bootcamp
+    if (!bootcamp) {
+        return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
+    }
+
+    //check to see if a file was actually uploaded
+    if (!req.files) {
+        return next(new ErrorResponse(`Please upload a file`, 404))
+    }
+
+    // console.log(req.files)
+    const file = req.files.file
+
+    //Make sure the image is a photo 
+    // always be image/jpeg, png etc 
+    if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse(`Please upload an image file`, 404))
+    }
+
+    // Check filesize 
+    if (file.size > process.env.MAX_FILE_UPLOAD) {
+        return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_UPLOAD}`, 404))
+    }
+
+    // Before we save the file using the mv method attached to this - which will move it to a directory we want, I want to create a custom file name bc if someone else uploads an image with the same name it's just going to override it
+    // We could call the file photo_whatever the Id of the bootcamp 
+    //Create custom filename 
+
+    file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`
+    console.log(file.name)
+
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async err => {
+        if (err) {
+            console.error(err)
+            //500 server error
+            return next(new ErrorResponse(`Problem with file upload`, 500))
+        }
+
+        //insert the filename into the DB
+        await Bootcamp.findByIdAndUpdate(req.params.id, { photo: file.name })
+
+        res.status(200).json({
+            success: true,
+            data: file.name
+        })
+
+    })
 
 })
 
