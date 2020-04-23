@@ -24,7 +24,6 @@
 - [node-geocoder](https://www.npmjs.com/package/node-geocoder)
 - [colors](https://www.npmjs.com/package/colors)
 - [morgan](https://www.npmjs.com/package/morgan)
-- 
 
 ## Author
 
