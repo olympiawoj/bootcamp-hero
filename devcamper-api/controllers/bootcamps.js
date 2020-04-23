@@ -1,13 +1,19 @@
-const Bootcamp = require('../models/Bootcamp')
+const path = require('path')
 const ErrorResponse = require('../utils/errorResponse')
 const asyncHandler = require('../middleware/async')
+const geocoder = require('../utils/geocoder')
+const Bootcamp = require('../models/Bootcamp')
 
 //@desc Get all bootcamps
 //@route GET /api/v1/bootcamps
 //@access Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-    const bootcamps = await Bootcamp.find()
-    res.status(200).json({ success: true, count: bootcamps.length, data: bootcamps })
+    // We should have access to res.advancedResults 
+
+
+    //Include pagination object in response 
+    //pagination is same as pagionation:pagionatin bc variable is same as key
+    res.status(200).json(res.advancedResults)
 
 })
 
@@ -24,6 +30,7 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
         //is a formatted object id BUT it's not in the database
         return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
     }
+
     res.status(200).json({ success: true, data: bootcamp })
 
 })
@@ -64,11 +71,105 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 //@route DELETE /api/v1/bootcamps/:id
 //@access Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id)
+    const bootcamp = await Bootcamp.findById(req.params.id)
 
     if (!bootcamp) {
         return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
     }
+
+    bootcamp.remove();//calls middleware 
+
     res.status(200).json({ success: true, data: {} })
 
 })
+
+
+
+//@desc Upload photo for bootcamp
+//@route PUT /api/v1/bootcamps/:id/photo
+//@access Private
+exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
+    const bootcamp = await Bootcamp.findById(req.params.id)
+    //check to make sure there is a bootcamp
+    if (!bootcamp) {
+        return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404))
+    }
+
+    //check to see if a file was actually uploaded
+    if (!req.files) {
+        return next(new ErrorResponse(`Please upload a file`, 404))
+    }
+
+    // console.log(req.files)
+    const file = req.files.file
+
+    //Make sure the image is a photo 
+    // always be image/jpeg, png etc 
+    if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse(`Please upload an image file`, 404))
+    }
+
+    // Check filesize 
+    if (file.size > process.env.MAX_FILE_UPLOAD) {
+        return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_UPLOAD}`, 404))
+    }
+
+    // Before we save the file using the mv method attached to this - which will move it to a directory we want, I want to create a custom file name bc if someone else uploads an image with the same name it's just going to override it
+    // We could call the file photo_whatever the Id of the bootcamp 
+    //Create custom filename 
+
+    file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`
+    console.log(file.name)
+
+    file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async err => {
+        if (err) {
+            console.error(err)
+            //500 server error
+            return next(new ErrorResponse(`Problem with file upload`, 500))
+        }
+
+        //insert the filename into the DB
+        await Bootcamp.findByIdAndUpdate(req.params.id, { photo: file.name })
+
+        res.status(200).json({
+            success: true,
+            data: file.name
+        })
+
+    })
+
+})
+
+
+
+//@desc Get bootcamps within a radius 
+//@route DELETE /api/v1/bootcamps/radius/:zipcode/:distance
+//@access Private
+exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
+    // Pull out params from URL
+    const { zipcode, distance } = req.params
+
+    // Get lat and lon from geocoder 
+    const loc = await geocoder.geocode(zipcode)
+    // Loc is an array
+    const lat = loc[0].latitude
+    const lng = loc[0].longitude
+
+    // Calc radius using radians - unit of measurement for spheres
+    // Divide distance is by radius of the earth - earth radius = 3,963 mi / 6,378km
+    const radius = distance / 3963
+    //find by location using geoWithin and centerSphere
+    const bootcamps = await Bootcamp.find({
+        location: {
+            $geoWithin: {
+                $centerSphere: [[lng, lat], radius]
+            }
+        }
+    })
+    res.status(200).json({
+        success: true,
+        count: bootcamps.length,
+        data: bootcamps
+    })
+})
+
