@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
+
 //pass in an object with all of our fields
 const UserSchema = new mongoose.Schema({
     name: {
@@ -31,6 +33,16 @@ const UserSchema = new mongoose.Schema({
             default: Date.now()
         }
     }
+})
+
+// Ecncrypt password using bcrypt 
+UserSchema.pre('save', async function (next) {
+    //Generate a salt to use that to actually hash the password
+    //When we call genSalt, it returns a promise so we need to use await. It takes in the number of rounds - higher the num, more secure, but heavier it is on your system. 10 is rec in docs. 
+    const salt = await bcrypt.genSalt(10)
+    //hash password with the salt 
+    this.password = await bcrypt.hash(this.password, salt)
+
 })
 
 
