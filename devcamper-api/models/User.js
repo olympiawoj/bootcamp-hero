@@ -57,4 +57,13 @@ UserSchema.methods.getSignedJwtToken = function () {
     })
 }
 
+// Check password - take plain text, match to the encrypted password
+// Let's create a model method just like we did right here to get hte token
+// Match user entered password to hashed password in database using bcrypt 
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+    // takes in user entered passwords and actual password in DB - this method will be called on the actual user, we have access ot this users field and hashed password
+    return await bcrypt.compare(enteredPassword, this.password)
+
+}
+
 module.exports = mongoose.model('User', UserSchema);
