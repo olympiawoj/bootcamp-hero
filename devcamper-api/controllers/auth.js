@@ -17,13 +17,15 @@ exports.register = asyncHandler(async (req, res, next) => {
         role
     });
 
-    // Create token 
-    const token = user.getSignedJwtToken()
+    //this replaces commented out code below
+    sendTokenResponse(user, 200, res)
 
-    res.status(200).json({
-        success: true,
-        token: token
-    })
+    // // Create token 
+    // const token = user.getSignedJwtToken()
+    // res.status(200).json({
+    //     success: true,
+    //     token: token
+    // })
 })
 
 
@@ -53,14 +55,38 @@ exports.login = asyncHandler(async (req, res, next) => {
     if (!isMatch) {
         return next(new ErrorResponse("Invalid credentials", 401))
     }
+    //this replaces commented out code below
+    sendTokenResponse(user, 200, res)
 
+    // // Create token 
+    // const token = user.getSignedJwtToken()
+    // res.status(200).json({
+    //     success: true,
+    //     token: token
+    // })
+})
 
-
+//  Get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
     // Create token 
     const token = user.getSignedJwtToken()
+    const options = {
+        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    }
 
-    res.status(200).json({
-        success: true,
-        token: token
-    })
-})
+    // checkes what environment we're in
+    if (process.env.NODE_ENV === 'productino') {
+        options.secure = true
+    }
+
+
+    res.status(statusCode)
+        .cookie('token', token, options)
+        .json({
+            success: true,
+            token
+        })
+
+
+}

@@ -6,6 +6,8 @@ const express = require('express')
 const morgan = require('morgan')
 const colors = require('colors')
 const fileupload = require('express-fileupload')
+const cookieParser = require('cookie-parser')
+
 const errorHandler = require('./middleware/error')
 
 // Load env vars
@@ -27,6 +29,9 @@ const app = express()
 
 // Body parser
 app.use(express.json())
+
+// Cookie Parser
+app.use(cookieParser())
 
 //File uploading
 app.use(fileupload())
