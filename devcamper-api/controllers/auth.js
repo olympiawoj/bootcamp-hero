@@ -76,7 +76,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     }
 
     // checkes what environment we're in
-    if (process.env.NODE_ENV === 'productino') {
+    if (process.env.NODE_ENV === 'production') {
         options.secure = true
     }
 
@@ -90,3 +90,19 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 
 }
+
+
+
+//@desc Get current logged in u ser
+//@route POST /api/v1/auth/me
+//@access Private - need token to access
+exports.getMe = asyncHandler(async (req, res, next) => {
+    // since it's a protect route, we have access to route.user
+    const user = await User.findById(req.user.id);
+    console.log('print is this running')
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+})
+
