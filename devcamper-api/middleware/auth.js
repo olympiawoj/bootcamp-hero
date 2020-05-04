@@ -42,3 +42,22 @@ exports.protect = asyncHandler(async (req, res, next) => {
 
 
 })
+
+
+//  Grant access to specific roles
+exports.authorize = (...roles) => {
+    // Return middleware function
+    return (req, res, next) => {
+        // Check if currently logged in user includes if the role is included in what's passed in here
+        // console.log('roles')
+        // console.log('user roles')
+        // console.log('headers', req.headers)
+        console.log('this authorize is ru nning....')
+        //Each user has a role property
+        if (!roles.includes(req.user.role)) {
+            return next(new ErrorResponse(`User role ${req.user.role} is unauthorized to access this route`, 403)
+            ); //403 is a forbidden error
+        }
+        next()
+    }
+}
