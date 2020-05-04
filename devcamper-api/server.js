@@ -6,6 +6,8 @@ const express = require('express')
 const morgan = require('morgan')
 const colors = require('colors')
 const fileupload = require('express-fileupload')
+const cookieParser = require('cookie-parser')
+
 const errorHandler = require('./middleware/error')
 
 // Load env vars
@@ -13,11 +15,12 @@ dotenv.config({ path: './config/config.env' });
 
 
 
-//Route files
+//Bring in Route files
 const bootcamps = require('./routes/bootcamps')
 const courses = require('./routes/courses')
-const connectDB = require('./config/db')
+const auth = require('./routes/auth')
 
+const connectDB = require('./config/db')
 
 //Connect to database
 connectDB()
@@ -26,6 +29,9 @@ const app = express()
 
 // Body parser
 app.use(express.json())
+
+// Cookie Parser
+app.use(cookieParser())
 
 //File uploading
 app.use(fileupload())
@@ -42,6 +48,7 @@ if (process.env.NODE_ENV === "development") {
 //Mount routers
 app.use('/api/v1/bootcamps', bootcamps)
 app.use('/api/v1/courses', courses)
+app.use('/api/v1/auth', auth)
 //errorHandler must be after bootcamps to be used in controllers/bootcamps.js 
 app.use(errorHandler)
 
