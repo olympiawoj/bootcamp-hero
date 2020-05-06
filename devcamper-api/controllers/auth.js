@@ -66,6 +66,48 @@ exports.login = asyncHandler(async (req, res, next) => {
     // })
 })
 
+
+
+//@desc Get current logged in user
+//@route POST /api/v1/auth/me
+//@access Private - need token to access
+exports.getMe = asyncHandler(async (req, res, next) => {
+    // since it's a protect route, we have access to route.user
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+})
+
+
+
+//@desc Forgot password
+//@route POST /api/v1/auth/forgotpassword
+//@access Public 
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+    // find email matching email to req.body.email
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+        return next(new ErrorResponse('There is no user with that email', 404))
+    }
+
+    // Get reset token - method on model itself user
+    const resetToken = user.getResetPasswordToken()
+
+    // Save user
+    await user.save({ validateBeforeSave: false })
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+})
+
+
+// Helper - not an actual controller method
 //  Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
     // Create token 
@@ -90,19 +132,3 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 
 }
-
-
-
-//@desc Get current logged in u ser
-//@route POST /api/v1/auth/me
-//@access Private - need token to access
-exports.getMe = asyncHandler(async (req, res, next) => {
-    // since it's a protect route, we have access to route.user
-    const user = await User.findById(req.user.id);
-    console.log('print is this running')
-    res.status(200).json({
-        success: true,
-        data: user
-    });
-})
-
