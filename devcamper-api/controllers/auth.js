@@ -140,10 +140,11 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 //@route PUT /api/v1/auth/resetpassword/:resettoken 
 //@access Public
 exports.resetPassword = asyncHandler(async (req, res, next) => {
-    // Get hashed token with crypto
+    console.log('token?', req.params.resettoken)
+    // Hash the token with crypto package
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex')
 
-    //Find the user by reset token, and only if expiry is greater than right noe
+    //Find the user by reset token, and only if expiry is greater than right now
     const user = await User.findOne({
         resetPasswordToken,
         resetPasswordExpire: { $gt: Date.now() } //greater than date.now
@@ -154,8 +155,9 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse("Invalid Token", 400))
     }
 
-    // If we can find the user by token and it's not expired, lets
+
     // Set new password- it should get encrypted bc our encrypted middleware
+    // If we can find the user by token and it's not expired, lets
     user.password = req.body.password
     user.resetPasswordToken = undefined
     user.resetPasswordExpire = undefined
