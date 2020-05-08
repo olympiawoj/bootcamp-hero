@@ -1,8 +1,9 @@
+const crypto = require('crypto')
 const ErrorResponse = require('../utils/errorResponse')
 const sendEmail = require('../utils/sendEmail')
 const asyncHandler = require('../middleware/async')
 const User = require('../models/User')
-const getSignedJwtToken = require('../')
+
 
 //@desc Register user
 //@route POST /api/v1/auth/register
@@ -83,7 +84,6 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 })
 
 
-
 //@desc Forgot password
 //@route POST /api/v1/auth/forgotpassword
 //@access Public 
@@ -102,7 +102,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     await user.save({ validateBeforeSave: false })
 
     // Create reset url
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/resetpassword/${resetToken}`
+    const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/resetpassword/${resetToken}`
 
     // Create message to pass in
     const message = `You are recieving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
@@ -120,9 +120,10 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     } catch (err) {
         //If something goes wrong, get rid of tokens in db
-        console.log(err)
+        console.log('err', err)
         user.resetPasswordToken = undefined
         user.resetPasswordExpire = undefined
+
         await user.save({ validateBeforeSave: false })
         return next(new ErrorResponse('Email could not be sent', 500))
     }
@@ -132,6 +133,41 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     //     data: user
     // });
 })
+
+
+
+//@desc Reset password
+//@route PUT /api/v1/auth/resetpassword/:resettoken 
+//@access Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+    // Get hashed token with crypto
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex')
+
+    //Find the user by reset token, and only if expiry is greater than right noe
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() } //greater than date.now
+    })
+
+    // Does our user exit?
+    if (!user) {
+        return next(new ErrorResponse("Invalid Token", 400))
+    }
+
+    // If we can find the user by token and it's not expired, lets
+    // Set new password- it should get encrypted bc our encrypted middleware
+    user.password = req.body.password
+    user.resetPasswordToken = undefined
+    user.resetPasswordExpire = undefined
+
+
+    await user.save()
+
+
+    sendTokenResponse(user, 200, res)
+})
+
+
 
 
 // Helper - not an actual controller method
