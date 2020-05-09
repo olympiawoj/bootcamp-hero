@@ -83,6 +83,53 @@ exports.getMe = asyncHandler(async (req, res, next) => {
     });
 })
 
+//@desc Update user details
+//@route PUT /api/v1/auth/updateddetails
+//@access Private 
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+    const fieldsToUpdate = {
+        name: req.body.name,
+        email: req.body.email
+    }
+    // since it's a protect route, we have access to route.user
+    // pass in logged in user's id and fields to update
+    const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+        new: true,
+        runValidators: true
+    });
+
+    res.status(200).json({
+        success: true,
+        data: user
+    });
+})
+
+//@desc Update password
+//@route PUT /api/v1/auth/updatepassword
+//@access Private - need token to access
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+
+    // since it's a protect route, we have access to route.user
+    const user = await User.findById(req.user.id).select('+password');
+
+    // Check current password - make sure it's true
+    // in our model we have that matchPassword method and it's asynchronous and it returns a promise
+    // if NOT that
+    if (!(await user.matchPassword(req.body.currentPassword))) {
+        return next(new ErrorResponse("Password is incorrect", 401))
+    }
+
+    // take user object and set password to new password
+    user.password = req.body.newPassword
+    //save user
+    await user.save()
+
+    // send token back, just like when they reset the password
+    sendTokenResponse(user, 200, res)
+
+})
+
+
 
 //@desc Forgot password
 //@route POST /api/v1/auth/forgotpassword
