@@ -13,6 +13,7 @@ const Bootcamp = require('../models/Bootcamp')
 
 // Include other resource routers 
 const courseRouter = require('./courses')
+const reviewRouter = require('./reviews')
 
 const router = express.Router()
 
@@ -23,7 +24,7 @@ const { protect, authorize } = require('../middleware/auth')
 // Anything that has :/bootcampId/courses, we know if that param is included, we want to mount that into the course router
 //Rather than bringing in getCourses into this router 
 router.use('/:bootcampId/courses', courseRouter);
-
+router.use('/:bootcampId/reviews', reviewRouter);
 
 router
     .route('/radius/:zipcode/:distance')
