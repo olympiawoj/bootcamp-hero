@@ -46,3 +46,28 @@ exports.getReview = asyncHandler(async (req, res, next) => {
 
 
 })
+
+
+//@desc Add review
+//@route GET /api/v1/bootcamps/:bootcampId/reviews
+//@access Private - have to be logged in AND a user so add auth middleware
+exports.addReview = asyncHandler(async (req, res, next) => {
+
+    req.body.bootcamp = req.params.bootcampId;
+    req.body.user = req.user.id //req.user.id gets logged in user
+
+    const bootcamp = await Bootcamp.findById(req.params.bootcampId)
+    //make sure bootcamp exists
+    if (!bootcamp) {
+        return next(new ErrorResponse(`No bootcamp with the id of ${req.params.bootcampId}`, 404))
+    }
+
+    const review = await Review.create(req.body); //req.body has all body data submitted, bootcamp, AND user
+
+    res.status(201).json({  //201 for creating a resource
+        success: true,
+        data: review
+    })
+
+
+})
