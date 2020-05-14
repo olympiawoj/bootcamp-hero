@@ -46,5 +46,45 @@ ReviewSchema.index({
 })
 
 
+// Static method to get avg bootcamp rating and save 
+ReviewSchema.statics.getAverageRating = async function (bootcampId) {
+    console.log("Calculating avg cost....".blue)
+    //aggregation- call method aggregate which returns a promise so use await
+    const obj = await this.aggregate([
+        {
+            $match: { bootcamp: bootcampId }
+        }, {
+            $group: {
+                _id: '$bootcamp',
+                averageRating: { $avg: '$rating' } //call avg operator on rating
+            }
+        }
+    ])
+    // //when this is done what we get is the object
+    // console.log(obj)//array with single object keys id and averageCost
+
+    try {
+        await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
+            averageRating: obj[0].averageRating
+        })
+    } catch (err) {
+        console.log(err)
+
+    }
+}
+
+// Call getAverageRating after save
+ReviewSchema.post('save', function () {
+    //run it on the actual model bc static method
+    this.constructor.getAverageRating(this.bootcamp)
+})
+
+// Call getAverageRating before remove
+ReviewSchema.pre('remove', function () {
+    this.constructor.getAverageCost(this.bootcamp)
+})
+
+
+
 
 module.exports = mongoose.model('Review', ReviewSchema)
