@@ -74,14 +74,14 @@ ReviewSchema.statics.getAverageRating = async function (bootcampId) {
 }
 
 // Call getAverageRating after save
-ReviewSchema.post('save', function () {
+ReviewSchema.post('save', async function () {
     //run it on the actual model bc static method
-    this.constructor.getAverageRating(this.bootcamp)
+    await this.constructor.getAverageRating(this.bootcamp)
 })
 
 // Call getAverageRating before remove
-ReviewSchema.pre('remove', function () {
-    this.constructor.getAverageCost(this.bootcamp)
+ReviewSchema.pre('remove', async function () {
+    await this.constructor.getAverageRating(this.bootcamp)
 })
 
 
