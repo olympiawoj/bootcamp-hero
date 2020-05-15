@@ -71,3 +71,57 @@ exports.addReview = asyncHandler(async (req, res, next) => {
 
 
 })
+
+
+
+//@desc Update review
+//@route PUT /api/v1/reviews:id
+//@access Private - have to be logged in AND a user who authoso add auth middleware
+exports.deleteReview = asyncHandler(async (req, res, next) => {
+
+    let review = await Review.findById(req.params.id)
+    //make sure review exists
+    if (!review) {
+        return next(new ErrorResponse(`No review with the id of ${req.params.id}`, 404))
+    }
+
+    // Permissions check - make sure review belongs to user or user is admin
+    if (review.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`Not authorized to update review with id of${req.params.id}`, 404))
+    }
+
+    await review.remove()
+
+    res.status(200).json({
+        success: true,
+        data: {}
+    })
+})
+
+
+//@desc Delete review
+//@route DELETE /api/v1/reviews:id
+//@access Private - have to be logged in AND a user so add auth middleware
+exports.updateReview = asyncHandler(async (req, res, next) => {
+
+    let review = await Review.findById(req.params.id)
+    //make sure review exists
+    if (!review) {
+        return next(new ErrorResponse(`No review with the id of ${req.params.id}`, 404))
+    }
+
+    // Permissions check - make sure review belongs to user or user is admin
+    if (review.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse(`Not authorized to update review with id of${req.params.id}`, 404))
+    }
+
+    review = await Review.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    }); //req.body has all body data submitted
+
+    res.status(200).json({
+        success: true,
+        data: review
+    })
+})
