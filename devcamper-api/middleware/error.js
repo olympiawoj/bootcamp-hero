@@ -11,8 +11,8 @@ const errorHandler = async (err, req, res, next) => {
     //Mongoose bad ObjectId - let's test for the CastError
     console.log(err.name)
     if (err.name === 'CastError') {
-        //send message- bootcamp not found
-        const message = `Bootcamp not found with id of ${err.value}`
+        //send message- resource not found
+        const message = `Resource not found with id of ${err.value}`
         //set error value- instead of sending the error response in the controllers/bootcamp.js catch, we're doing it right in the error ahndler if it matches this CastError
         error = new ErrorResponse(message, 404);
     }
