@@ -12,7 +12,7 @@ const errorHandler = async (err, req, res, next) => {
     console.log(err.name)
     if (err.name === 'CastError') {
         //send message- resource not found
-        const message = `Resource not found with id of ${err.value}`
+        const message = `Resource not found`
         //set error value- instead of sending the error response in the controllers/bootcamp.js catch, we're doing it right in the error ahndler if it matches this CastError
         error = new ErrorResponse(message, 404);
     }
